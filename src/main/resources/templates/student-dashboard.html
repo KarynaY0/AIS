@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - AIS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        .header {
+            background-color: #2196F3;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logout-btn {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .logout-btn:hover {
+            background-color: #d32f2f;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #2196F3;
+            padding-bottom: 10px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .info-box {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .filter-section {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-section label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        .filter-section select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .filter-section button {
+            background-color: #2196F3;
+            color: white;
+            padding: 8px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .filter-section button:hover {
+            background-color: #1976D2;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table th, table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        table th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+        }
+
+        table tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .grade-badge {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .grade-excellent {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .grade-good {
+            background-color: #8BC34A;
+            color: white;
+        }
+
+        .grade-average {
+            background-color: #FFC107;
+            color: #333;
+        }
+
+        .grade-poor {
+            background-color: #FF5722;
+            color: white;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .subject-name {
+            font-weight: bold;
+            color: #2196F3;
+        }
+
+        .averages-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #ddd;
+        }
+
+        .averages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .average-card {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #2196F3;
+        }
+
+        .average-card .subject-code {
+            font-weight: bold;
+            color: #2196F3;
+            margin-bottom: 5px;
+        }
+
+        .average-card .average-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .average-card .grade-count {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>Student Dashboard</h1>
+    <div class="user-info">
+        <span th:text="${username} ?: 'Student'">Student</span>
+        <form method="GET" action="/student/logout" style="display: inline;">
+            <button type="submit" class="logout-btn">Logout</button>
+        </form>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Total Grades</h3>
+            <div class="stat-value" th:text="${gradeCount} ?: 0">0</div>
+            <div class="stat-label">Recorded assessments</div>
+        </div>
+        <div class="stat-card">
+            <h3>Overall Average</h3>
+            <div class="stat-value" th:text="${overallAverage != null ? #numbers.formatDecimal(overallAverage, 1, 2) : '0.00'}">0.00</div>
+            <div class="stat-label">Out of 100</div>
+        </div>
+        <div class="stat-card">
+            <h3>Enrolled Subjects</h3>
+            <div class="stat-value" th:text="${subjects != null ? subjects.size() : 0}">0</div>
+            <div class="stat-label">Active courses</div>
+        </div>
+        <div class="stat-card" th:if="${student != null && student.group != null}">
+            <h3>Group</h3>
+            <div class="stat-value" style="font-size: 20px;" th:text="${student.group.courseYear}">N/A</div>
+            <div class="stat-label">Course year</div>
+        </div>
+    </div>
+
+    <!-- Error Message -->
+    <div th:if="${errorMessage}" class="message error" th:text="${errorMessage}"></div>
+
+    <!-- My Grades Section -->
+    <div class="section">
+        <h2>My Grades</h2>
+
+        <div class="info-box">
+            <p><strong>Note:</strong> All your grades are displayed below. You can filter by subject to view specific course grades.</p>
+        </div>
+
+        <!-- Filter Section -->
+        <form action="/student/dashboard" method="get" class="filter-section" th:if="${subjects != null && !subjects.isEmpty()}">
+            <label for="subjectFilter">Filter by Subject:</label>
+            <select name="filter" id="subjectFilter">
+                <option value="">All Subjects</option>
+                <option th:each="subject : ${subjects}"
+                        th:value="${subject.subjectId}"
+                        th:text="${subject.code}"
+                        th:selected="${selectedFilter != null && selectedFilter == subject.subjectId.toString()}">
+                </option>
+            </select>
+            <button type="submit">Apply Filter</button>
+            <a href="/student/dashboard" th:if="${selectedFilter != null}"
+               style="color: #2196F3; text-decoration: none; padding: 8px 20px;">Clear Filter</a>
+        </form>
+
+        <!-- Grades Table -->
+        <div th:if="${hasGrades != null && hasGrades}">
+            <table>
+                <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Grade</th>
+                    <th>Credits</th>
+                    <th>Comment</th>
+                    <th>Updated</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="grade : ${grades}">
+                    <td>
+                        <span class="subject-name" th:text="${grade.subject.code}">MATH101</span>
+                    </td>
+                    <td>
+                        <span class="grade-badge"
+                              th:classappend="${grade.gradeValue >= 90} ? 'grade-excellent' : (${grade.gradeValue >= 75} ? 'grade-good' : (${grade.gradeValue >= 50} ? 'grade-average' : 'grade-poor'))"
+                              th:text="${grade.gradeValue != null ? #numbers.formatDecimal(grade.gradeValue, 1, 2) : 'N/A'}">
+                            95.00
+                        </span>
+                    </td>
+                    <td th:text="${grade.subject.credits != null ? grade.subject.credits : 'N/A'}">5</td>
+                    <td th:text="${grade.comment != null && !grade.comment.isEmpty() ? grade.comment : '-'}">Excellent work</td>
+                    <td th:text="${grade.updatedTime != null ? #temporals.format(grade.updatedTime, 'yyyy-MM-dd HH:mm') : 'N/A'}">2024-01-15 10:30</td>
+                </tr>
+                </tbody>
+            </table>
+
+            <!-- Subject Averages Summary -->
+            <div class="averages-section" th:if="${subjects != null && !subjects.isEmpty()}">
+                <h2>Subject Averages</h2>
+                <div class="averages-grid">
+                    <div th:each="subject : ${subjects}" class="average-card">
+                        <div class="subject-code" th:text="${subject.code}">MATH101</div>
+                        <div class="average-value"
+                             th:text="${subjectAverages != null && subjectAverages.containsKey(subject.subjectId) ? #numbers.formatDecimal(subjectAverages.get(subject.subjectId), 1, 2) : 'N/A'}">
+                            95.00
+                        </div>
+                        <div class="grade-count"
+                             th:text="${gradesBySubject != null && gradesBySubject.containsKey(subject.subjectId) ? gradesBySubject.get(subject.subjectId).size() + ' grade(s)' : 'No grades'}">
+                            3 grades
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- No Grades Message -->
+        <div th:if="${hasGrades == null || !hasGrades}" class="no-data">
+            <p style="font-size: 18px; margin-bottom: 10px;">No Grades Yet</p>
+            <p>You don't have any recorded grades at the moment.</p>
+            <p style="color: #666; margin-top: 10px;">Grades will appear here once your teachers enter them.</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

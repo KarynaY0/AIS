@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - AIS</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background-color: #f5f5f5; padding: 20px; }
+        .header { background-color: #2196F3; color: white; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
+        .header h1 { font-size: 24px; margin-bottom: 10px; }
+        .navigation { background: white; padding: 15px; border-radius: 5px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .navigation a { display: inline-block; padding: 10px 20px; margin: 5px; background-color: #2196F3; color: white; text-decoration: none; border-radius: 4px; }
+        .navigation a:hover { background-color: #1976D2; }
+        .logout-btn { display: inline-block; padding: 10px 20px; margin: 5px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-family: Arial, sans-serif; }
+        .logout-btn:hover { background-color: #d32f2f; }
+        .section { background: white; padding: 20px; border-radius: 5px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h2 { color: #333; margin-bottom: 15px; border-bottom: 2px solid #2196F3; padding-bottom: 10px; }
+        .info-box { background-color: #e3f2fd; border-left: 4px solid #2196F3; padding: 15px; margin-bottom: 15px; }
+        ul { margin-left: 20px; }
+        li { margin: 5px 0; }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>Administrator Dashboard</h1>
+    <p>Welcome, <span th:text="${username}">Admin</span></p>
+</div>
+
+<div class="navigation">
+    <a href="/admin/dashboard">Dashboard</a>
+    <a href="/admin/students">Students</a>
+    <a href="/admin/teachers">Teachers</a>
+    <a href="/admin/groups">Groups</a>
+    <a href="/admin/subjects">Subjects</a>
+    <a href="/admin/assignments">Assignments</a>
+
+    <!-- LOGOUT BUTTON - Added here -->
+    <form method="GET" action="/admin/logout" style="display: inline; float: right;">
+        <button type="submit" class="logout-btn">Logout</button>
+    </form>
+</div>
+
+<div class="section">
+    <h2>Welcome to the Admin Dashboard</h2>
+    <div class="info-box">
+        <p><strong>Quick Guide:</strong></p>
+        <ul>
+            <li>Navigate using the menu above</li>
+            <li>Create students, teachers, groups, and subjects</li>
+            <li>Assign teachers to subjects</li>
+            <li>Assign students to groups</li>
+            <li>Assign subjects to groups</li>
+        </ul>
+    </div>
+
+    <div class="info-box">
+        <p><strong>Note:</strong> When creating students or teachers:</p>
+        <ul>
+            <li>Username = First Name</li>
+            <li>Password = Last Name</li>
+        </ul>
+    </div>
+</div>
+</body>
+</html>

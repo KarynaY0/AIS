@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Teachers Management - AIS</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background-color: #f5f5f5; padding: 20px; }
+        .header { background-color: #2196F3; color: white; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
+        .navigation { background: white; padding: 15px; border-radius: 5px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .navigation a { display: inline-block; padding: 10px 20px; margin: 5px; background-color: #2196F3; color: white; text-decoration: none; border-radius: 4px; }
+        .navigation a:hover { background-color: #1976D2; }
+        .logout-btn { display: inline-block; padding: 10px 20px; margin: 5px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-family: Arial, sans-serif; }
+        .logout-btn:hover { background-color: #d32f2f; }
+        .section { background: white; padding: 20px; border-radius: 5px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h2 { color: #333; margin-bottom: 15px; border-bottom: 2px solid #2196F3; padding-bottom: 10px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+        input, select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px; }
+        button:hover { background-color: #45a049; }
+        .btn-delete { background-color: #f44336; padding: 5px 10px; font-size: 12px; margin: 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        table th, table td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        table th { background-color: #f5f5f5; }
+        .message { padding: 12px; border-radius: 4px; margin-bottom: 15px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>Teachers Management</h1>
+    <p>Welcome, <span th:text="${username}">Admin</span></p>
+</div>
+
+<div class="navigation">
+    <a href="/admin/dashboard">Dashboard</a>
+    <a href="/admin/students">Students</a>
+    <a href="/admin/teachers">Teachers</a>
+    <a href="/admin/groups">Groups</a>
+    <a href="/admin/subjects">Subjects</a>
+    <a href="/admin/assignments">Assignments</a>
+    <form method="GET" action="/admin/logout" style="display: inline; float: right;">
+        <button type="submit" class="logout-btn">Logout</button>
+    </form>
+</div>
+
+<div th:if="${successMessage}" class="message success" th:text="${successMessage}"></div>
+<div th:if="${errorMessage}" class="message error" th:text="${errorMessage}"></div>
+
+<div class="section">
+    <h2>Create New Teacher</h2>
+    <form action="/admin/teachers/create" method="post">
+        <div class="form-group">
+            <label>First Name (will be Username):</label>
+            <input type="text" name="firstName" required>
+        </div>
+        <div class="form-group">
+            <label>Last Name (will be Password):</label>
+            <input type="text" name="lastName" required>
+        </div>
+        <div class="form-group">
+            <label>Department:</label>
+            <input type="text" name="department" placeholder="e.g., Computer Science">
+        </div>
+        <button type="submit">Create Teacher</button>
+    </form>
+</div>
+
+<div class="section">
+    <h2>All Teachers</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Department</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:if="${#lists.isEmpty(teachers)}">
+            <td colspan="4" style="text-align: center; color: #999;">No teachers found.</td>
+        </tr>
+        <tr th:each="teacher : ${teachers}">
+            <td th:text="${teacher.user.userId}"></td>
+            <td><strong th:text="${teacher.user.username}"></strong></td>
+            <td th:text="${teacher.department != null ? teacher.department : 'N/A'}"></td>
+            <td>
+                <form th:action="@{'/admin/teachers/delete/' + ${teacher.user.userId}}" method="post" style="display: inline;" onsubmit="return confirm('Delete this teacher?');">
+                    <button type="submit" class="btn-delete">Delete</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
