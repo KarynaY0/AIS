@@ -124,7 +124,7 @@ public class AuthController {
     public ResponseEntity<Map<String, Object>> getSession(HttpSession session) {
         Map<String, Object> response = new HashMap<>();
 
-        Integer userId = (Integer) session.getAttribute("userId");
+        Long userId = (Long) session.getAttribute("userId");
         String username = (String) session.getAttribute("username");
         String role = (String) session.getAttribute("role");
 

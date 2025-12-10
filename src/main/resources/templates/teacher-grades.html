@@ -5,252 +5,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Grade Management - AIS</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background-color: #f5f5f5; }
+        .header { background-color: #2196F3; color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 24px; }
+        .user-info { display: flex; align-items: center; gap: 20px; }
+        .back-btn, .logout-btn { background-color: white; color: #2196F3; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; }
+        .logout-btn { background-color: #f44336; color: white; }
+        .back-btn:hover { background-color: #f5f5f5; }
+        .logout-btn:hover { background-color: #d32f2f; }
+        .container { max-width: 1400px; margin: 20px auto; padding: 0 20px; }
+        .section { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h2 { color: #333; margin-bottom: 20px; border-bottom: 2px solid #2196F3; padding-bottom: 10px; }
 
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-        }
+        /* Statistics cards */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); color: white; padding: 20px; border-radius: 8px; text-align: center; }
+        .stat-card.warning { background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%); }
+        .stat-card.success { background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); }
+        .stat-card h3 { font-size: 14px; opacity: 0.9; margin-bottom: 10px; text-transform: uppercase; }
+        .stat-value { font-size: 32px; font-weight: bold; margin-bottom: 5px; }
+        .stat-label { font-size: 12px; opacity: 0.8; }
 
-        .header {
-            background-color: #2196F3;
-            color: white;
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .header h1 {
-            font-size: 24px;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .back-btn, .logout-btn {
-            background-color: white;
-            color: #2196F3;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .logout-btn {
-            background-color: #f44336;
-            color: white;
-        }
-
-        .back-btn:hover {
-            background-color: #f5f5f5;
-        }
-
-        .logout-btn:hover {
-            background-color: #d32f2f;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 20px auto;
-            padding: 0 20px;
-        }
-
-        .section {
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-
-        h2 {
-            color: #333;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #2196F3;
-            padding-bottom: 10px;
-        }
-
-        .message {
-            padding: 12px;
-            border-radius: 4px;
-            margin-bottom: 15px;
-        }
-
-        .success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
-        }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 60px;
-        }
-
-        button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            margin-top: 10px;
-        }
-
-        button:hover {
-            background-color: #45a049;
-        }
-
-        .btn-edit {
-            background-color: #2196F3;
-            padding: 5px 10px;
-            font-size: 12px;
-            margin: 0 5px 0 0;
-        }
-
-        .btn-edit:hover {
-            background-color: #1976D2;
-        }
-
-        .btn-delete {
-            background-color: #f44336;
-            padding: 5px 10px;
-            font-size: 12px;
-            margin: 0;
-        }
-
-        .btn-delete:hover {
-            background-color: #d32f2f;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        table th, table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        table th {
-            background-color: #f5f5f5;
-            font-weight: bold;
-        }
-
-        table tr:hover {
-            background-color: #f9f9f9;
-        }
-
-        .grade-badge {
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-weight: bold;
-        }
-
-        .grade-excellent {
-            background-color: #4CAF50;
-            color: white;
-        }
-
-        .grade-good {
-            background-color: #8BC34A;
-            color: white;
-        }
-
-        .grade-average {
-            background-color: #FFC107;
-            color: #333;
-        }
-
-        .grade-poor {
-            background-color: #FF5722;
-            color: white;
-        }
-
-        .no-data {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-        }
-
-        .info-box {
-            background-color: #e3f2fd;
-            border-left: 4px solid #2196F3;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.4);
-        }
-
-        .modal-content {
-            background-color: white;
-            margin: 5% auto;
-            padding: 30px;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .close:hover {
-            color: #000;
-        }
+        .message { padding: 12px; border-radius: 4px; margin-bottom: 15px; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+        input, select, textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #4CAF50; }
+        input:invalid:not(:placeholder-shown) { border-color: #f44336; }
+        input:valid:not(:placeholder-shown) { border-color: #4CAF50; }
+        select:invalid { border-color: #f44336; }
+        .validation-message { display: none; color: #f44336; font-size: 12px; margin-top: 5px; }
+        input:invalid:not(:placeholder-shown) + .validation-message, select:invalid + .validation-message { display: block; }
+        textarea { resize: vertical; min-height: 60px; }
+        button { background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; margin-top: 10px; }
+        button:hover { background-color: #45a049; }
+        .btn-edit { background-color: #2196F3; padding: 5px 10px; font-size: 12px; margin: 0 5px 0 0; }
+        .btn-edit:hover { background-color: #1976D2; }
+        .btn-delete { background-color: #f44336; padding: 5px 10px; font-size: 12px; margin: 0; }
+        .btn-delete:hover { background-color: #d32f2f; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        table th, table td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        table th { background-color: #f5f5f5; font-weight: bold; }
+        table tr:hover { background-color: #f9f9f9; }
+        .grade-badge { padding: 5px 10px; border-radius: 4px; font-weight: bold; }
+        .grade-excellent { background-color: #4CAF50; color: white; }
+        .grade-good { background-color: #8BC34A; color: white; }
+        .grade-average { background-color: #FFC107; color: #333; }
+        .grade-poor { background-color: #FF5722; color: white; }
+        .no-data { text-align: center; padding: 40px; color: #999; }
+        .info-box { background-color: #e3f2fd; border-left: 4px solid #2196F3; padding: 15px; margin-bottom: 20px; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
+        .modal-content { background-color: white; margin: 5% auto; padding: 30px; border-radius: 8px; width: 90%; max-width: 500px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close:hover { color: #000; }
     </style>
 </head>
 <body>
@@ -272,6 +82,14 @@
     <div th:if="${successMessage}" class="message success" th:text="${successMessage}"></div>
     <div th:if="${errorMessage}" class="message error" th:text="${errorMessage}"></div>
 
+    <!-- Statistics Summary Section -->
+    <div class="section" th:if="${!#lists.isEmpty(grades)}">
+        <h2>Statistics Summary</h2>
+        <div class="stats-grid" id="statsGrid">
+            <!-- Statistics will be dynamically calculated and inserted here -->
+        </div>
+    </div>
+
     <!-- Enter New Grade Section -->
     <div class="section">
         <h2>Enter New Grade</h2>
@@ -279,28 +97,39 @@
             <p><strong>Note:</strong> You can enter multiple grades for the same student in this subject. Each entry will be recorded separately.</p>
         </div>
 
-        <form method="POST" action="/teacher/grades/enter">
+        <form method="POST" action="/teacher/grades/enter" id="gradeEntryForm">
             <input type="hidden" name="subjectId" th:value="${subject.subjectId}">
 
             <div class="form-group">
                 <label>Select Student:</label>
-                <select name="studentId" required>
+                <select name="studentId" id="studentId" required>
                     <option value="">-- Choose Student --</option>
                     <option th:each="student : ${students}"
                             th:value="${student.user.userId}"
                             th:text="${student.user.username}">
                     </option>
                 </select>
+                <span class="validation-message">Please select a student</span>
             </div>
 
             <div class="form-group">
                 <label>Grade (0-100):</label>
-                <input type="number" name="gradeValue" min="0" max="100" step="0.01" required placeholder="Enter grade value">
+                <input type="number"
+                       name="gradeValue"
+                       id="gradeValue"
+                       min="0"
+                       max="100"
+                       step="0.01"
+                       required
+                       placeholder="Enter grade value">
+                <span class="validation-message">Grade must be between 0 and 100</span>
             </div>
 
             <div class="form-group">
                 <label>Comment (Optional):</label>
-                <textarea name="comment" placeholder="Enter feedback for the student"></textarea>
+                <textarea name="comment"
+                          id="comment"
+                          placeholder="Enter feedback for the student"></textarea>
             </div>
 
             <button type="submit">Enter Grade</button>
@@ -316,7 +145,7 @@
         </div>
 
         <div th:if="${!#lists.isEmpty(grades)}">
-            <table>
+            <table id="gradesTable">
                 <thead>
                 <tr>
                     <th>Student</th>
@@ -369,18 +198,28 @@
         <span class="close" onclick="closeEditModal()">&times;</span>
         <h2>Edit Grade</h2>
 
-        <form method="POST" action="/teacher/grades/edit">
+        <form method="POST" action="/teacher/grades/edit" id="editGradeForm">
             <input type="hidden" name="gradeId" id="editGradeId">
             <input type="hidden" name="subjectId" th:value="${subject.subjectId}">
 
             <div class="form-group">
                 <label>New Grade (0-100):</label>
-                <input type="number" name="gradeValue" id="editGradeValue" min="0" max="100" step="0.01" required>
+                <input type="number"
+                       name="gradeValue"
+                       id="editGradeValue"
+                       min="0"
+                       max="100"
+                       step="0.01"
+                       required
+                       placeholder="Enter grade">
+                <span class="validation-message">Grade must be between 0 and 100</span>
             </div>
 
             <div class="form-group">
                 <label>Comment:</label>
-                <textarea name="comment" id="editComment" placeholder="Enter feedback"></textarea>
+                <textarea name="comment"
+                          id="editComment"
+                          placeholder="Enter feedback"></textarea>
             </div>
 
             <button type="submit">Update Grade</button>
@@ -389,10 +228,103 @@
 </div>
 
 <script>
+    // Calculate and display statistics
+    function calculateStatistics() {
+        const table = document.getElementById('gradesTable');
+        if (!table) {
+            return;
+        }
+
+        const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+        let grades = [];
+        let uniqueStudents = new Set();
+
+        // Extract grades from table
+        for (let i = 0; i < rows.length; i++) {
+            const gradeCell = rows[i].cells[1];
+            const gradeText = gradeCell.textContent.trim();
+            const gradeValue = parseFloat(gradeText);
+
+            if (!isNaN(gradeValue)) {
+                grades.push(gradeValue);
+            }
+
+            // Track unique students
+            const studentName = rows[i].cells[0].textContent.trim();
+            uniqueStudents.add(studentName);
+        }
+
+        if (grades.length === 0) {
+            return;
+        }
+
+        // Calculate statistics
+        const totalGrades = grades.length;
+        const studentsWithGrades = uniqueStudents.size;
+        const averageGrade = (grades.reduce((sum, val) => sum + val, 0) / totalGrades).toFixed(2);
+        const highestGrade = Math.max(...grades).toFixed(2);
+        const lowestGrade = Math.min(...grades).toFixed(2);
+        const failingGrades = grades.filter(g => g < 50).length;
+
+        // Build statistics HTML
+        const statsGrid = document.getElementById('statsGrid');
+        if (statsGrid) {
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <h3>Students with Grades</h3>
+                    <div class="stat-value">${studentsWithGrades}</div>
+                    <div class="stat-label">${totalGrades} total grade(s) entered</div>
+                </div>
+                <div class="stat-card success">
+                    <h3>Average Grade</h3>
+                    <div class="stat-value">${averageGrade}</div>
+                    <div class="stat-label">Out of 100</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Highest Grade</h3>
+                    <div class="stat-value">${highestGrade}</div>
+                    <div class="stat-label">Best performance</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Lowest Grade</h3>
+                    <div class="stat-value">${lowestGrade}</div>
+                    <div class="stat-label">Needs attention</div>
+                </div>
+                <div class="stat-card ${failingGrades > 0 ? 'warning' : ''}">
+                    <h3>Failing Grades</h3>
+                    <div class="stat-value">${failingGrades}</div>
+                    <div class="stat-label">Below 50 points</div>
+                </div>
+            `;
+        }
+    }
+
+    // Form validation for grade entry
+    document.getElementById('gradeEntryForm').addEventListener('submit', function(e) {
+        const studentId = document.getElementById('studentId');
+        const gradeValue = document.getElementById('gradeValue');
+
+        if (!studentId.value) {
+            e.preventDefault();
+            alert('Please select a student');
+            studentId.focus();
+            return false;
+        }
+
+        const grade = parseFloat(gradeValue.value);
+        if (isNaN(grade) || grade < 0 || grade > 100) {
+            e.preventDefault();
+            alert('Grade must be between 0 and 100');
+            gradeValue.focus();
+            return false;
+        }
+    });
+
+    // Modal functions
     function openEditModal(gradeId, gradeValue, comment) {
         document.getElementById('editGradeId').value = gradeId;
         document.getElementById('editGradeValue').value = gradeValue;
-        document.getElementById('editComment').value = comment;
+        document.getElementById('editComment').value = comment !== 'null' && comment ? comment : '';
         document.getElementById('editModal').style.display = 'block';
     }
 
@@ -406,6 +338,24 @@
             closeEditModal();
         }
     }
+
+    // Form validation for edit
+    document.getElementById('editGradeForm').addEventListener('submit', function(e) {
+        const gradeValue = document.getElementById('editGradeValue');
+
+        const grade = parseFloat(gradeValue.value);
+        if (isNaN(grade) || grade < 0 || grade > 100) {
+            e.preventDefault();
+            alert('Grade must be between 0 and 100');
+            gradeValue.focus();
+            return false;
+        }
+    });
+
+    // Initialize statistics on page load
+    window.addEventListener('DOMContentLoaded', function() {
+        calculateStatistics();
+    });
 </script>
 </body>
 </html>

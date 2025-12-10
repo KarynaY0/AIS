@@ -9,29 +9,55 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * GroupRepository - Updated for new group format
+ *
+ * New format: [ProgramInitials][Year][LanguageCode]
+ * Example: PI24E, CS23, BA24L
+ */
 @Repository
 public interface GroupRepository extends JpaRepository<Group, Long> {
 
     /**
-     * Find group by course year
-     * @param courseYear the course year to search for (format: YYYY/YYYY)
+     * Find group by complete group code
+     * @param groupCode the group code (e.g., "PI24E", "CS23")
      * @return Optional containing the group if found
      */
-    Optional<Group> findByCourseYear(String courseYear);
+    Optional<Group> findByGroupCode(String groupCode);
 
     /**
-     * Find all groups by course year
-     * @param courseYear the course year to search for
-     * @return List of groups with the specified course year
-     */
-    List<Group> findAllByCourseYear(String courseYear);
-
-    /**
-     * Check if group exists with the given course year
-     * @param courseYear the course year to check
+     * Check if group exists with the given code
+     * @param groupCode the group code to check
      * @return true if group exists, false otherwise
      */
-    boolean existsByCourseYear(String courseYear);
+    boolean existsByGroupCode(String groupCode);
+
+    /**
+     * Find groups by program initials
+     * @param programInitials the program initials (e.g., "PI", "CS")
+     * @return List of groups with matching program initials
+     */
+    List<Group> findByProgramInitials(String programInitials);
+
+    /**
+     * Find groups by start year
+     * @param startYear the start year (2-digit: 23, 24, etc.)
+     * @return List of groups starting in that year
+     */
+    List<Group> findByStartYear(Integer startYear);
+
+    /**
+     * Find groups by language code
+     * @param languageCode the language code (e.g., "E", "L")
+     * @return List of groups with matching language code
+     */
+    List<Group> findByLanguageCode(String languageCode);
+
+    /**
+     * Find groups with null language code
+     * @return List of groups without language specification
+     */
+    List<Group> findByLanguageCodeIsNull();
 
     /**
      * Find groups enrolled in a specific subject
@@ -40,14 +66,6 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
      */
     @Query("SELECT DISTINCT g FROM Group g JOIN g.groupSubjects gs WHERE gs.subject.subjectId = :subjectId")
     List<Group> findBySubjectId(@Param("subjectId") Long subjectId);
-
-    /**
-     * Find groups by academic semester
-     * @param academicSemester the academic semester
-     * @return List of groups in the specified semester
-     */
-    @Query("SELECT DISTINCT g FROM Group g JOIN g.groupSubjects gs WHERE gs.academicSemester = :semester")
-    List<Group> findByAcademicSemester(@Param("semester") String academicSemester);
 
     /**
      * Find all groups with students
@@ -91,29 +109,49 @@ public interface GroupRepository extends JpaRepository<Group, Long> {
     long countSubjectsInGroup(@Param("groupId") Long groupId);
 
     /**
-     * Find groups by course year pattern (e.g., "2023" to find "2023/2024")
-     * @param yearPattern the year pattern to search for
+     * Find groups by group code pattern (e.g., "PI" to find all PI groups)
+     * @param codePattern the code pattern to search for
      * @return List of groups matching the pattern
      */
-    @Query("SELECT g FROM Group g WHERE g.courseYear LIKE CONCAT('%', :yearPattern, '%')")
-    List<Group> findByCourseYearContaining(@Param("yearPattern") String yearPattern);
+    @Query("SELECT g FROM Group g WHERE g.groupCode LIKE CONCAT(:codePattern, '%')")
+    List<Group> findByGroupCodeStartingWith(@Param("codePattern") String codePattern);
 
     /**
-     * Find all distinct course years
-     * @return List of all unique course years, sorted
+     * Find all distinct program initials
+     * @return List of all unique program initials, sorted
      */
-    @Query("SELECT DISTINCT g.courseYear FROM Group g WHERE g.courseYear IS NOT NULL ORDER BY g.courseYear DESC")
-    List<String> findAllCourseYears();
+    @Query("SELECT DISTINCT g.programInitials FROM Group g ORDER BY g.programInitials")
+    List<String> findAllProgramInitials();
 
     /**
-     * Find groups with subjects in a specific semester and academic year
-     * @param semester the semester
-     * @param courseYear the course year
-     * @return List of groups matching the criteria
+     * Find all distinct start years
+     * @return List of all unique start years, sorted descending
      */
-    @Query("SELECT DISTINCT g FROM Group g " +
-            "JOIN g.groupSubjects gs " +
-            "WHERE gs.academicSemester = :semester AND g.courseYear = :courseYear")
-    List<Group> findBySemesterAndCourseYear(@Param("semester") String semester,
-                                            @Param("courseYear") String courseYear);
+    @Query("SELECT DISTINCT g.startYear FROM Group g ORDER BY g.startYear DESC")
+    List<Integer> findAllStartYears();
+
+    /**
+     * Find all distinct language codes (excluding null)
+     * @return List of all unique language codes, sorted
+     */
+    @Query("SELECT DISTINCT g.languageCode FROM Group g WHERE g.languageCode IS NOT NULL ORDER BY g.languageCode")
+    List<String> findAllLanguageCodes();
+
+    /**
+     * Find groups by program and year
+     * @param programInitials the program initials
+     * @param startYear the start year
+     * @return List of groups matching program and year
+     */
+    List<Group> findByProgramInitialsAndStartYear(String programInitials, Integer startYear);
+
+    /**
+     * Find groups by program, year, and language
+     * @param programInitials the program initials
+     * @param startYear the start year
+     * @param languageCode the language code
+     * @return List of groups matching all criteria
+     */
+    List<Group> findByProgramInitialsAndStartYearAndLanguageCode(
+            String programInitials, Integer startYear, String languageCode);
 }

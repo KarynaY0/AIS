@@ -333,24 +333,50 @@ public class DatabaseTestController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    /**
+     * Create a new group - NEW FORMAT
+     * Expected JSON:
+     * {
+     *   "programInitials": "PI",
+     *   "startYear": 24,
+     *   "languageCode": "E"  // optional
+     * }
+     */
     @PostMapping("/groups")
-    public ResponseEntity<Group> createGroup(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Group> createGroup(@RequestBody Map<String, Object> request) {
         try {
-            String courseYear = request.get("courseYear");
-            Group group = groupService.createGroup(courseYear);
+            String programInitials = (String) request.get("programInitials");
+            Integer startYear = Integer.valueOf(request.get("startYear").toString());
+            String languageCode = (String) request.get("languageCode");
+
+            Group group = groupService.createGroup(programInitials, startYear, languageCode);
             return ResponseEntity.status(HttpStatus.CREATED).body(group);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
         }
     }
 
+    /**
+     * Update a group - NEW FORMAT
+     * Expected JSON:
+     * {
+     *   "programInitials": "CS",  // optional
+     *   "startYear": 25,          // optional
+     *   "languageCode": "L"       // optional
+     * }
+     */
     @PutMapping("/groups/{id}")
     public ResponseEntity<Group> updateGroup(
             @PathVariable Long id,
-            @RequestBody Map<String, String> request) {
+            @RequestBody Map<String, Object> request) {
         try {
-            String courseYear = request.get("courseYear");
-            Group group = groupService.updateGroup(id, courseYear);
+            String programInitials = (String) request.get("programInitials");
+            Integer startYear = request.get("startYear") != null
+                    ? Integer.valueOf(request.get("startYear").toString())
+                    : null;
+            String languageCode = (String) request.get("languageCode");
+
+            Group group = groupService.updateGroup(id, programInitials, startYear, languageCode);
             return ResponseEntity.ok(group);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();

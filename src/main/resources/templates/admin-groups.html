@@ -9,6 +9,7 @@
         .header { background-color: #2196F3; color: white; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
         .navigation { background: white; padding: 15px; border-radius: 5px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .navigation a { display: inline-block; padding: 10px 20px; margin: 5px; background-color: #2196F3; color: white; text-decoration: none; border-radius: 4px; }
+        .navigation a:hover { background-color: #1976D2; }
         .logout-btn { display: inline-block; padding: 10px 20px; margin: 5px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-family: Arial, sans-serif; }
         .logout-btn:hover { background-color: #d32f2f; }
         .section { background: white; padding: 20px; border-radius: 5px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
@@ -16,14 +17,49 @@
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; }
         input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        input:focus { outline: none; border-color: #4CAF50; }
+        input:invalid:not(:placeholder-shown) { border-color: #f44336; }
+        input:valid:not(:placeholder-shown) { border-color: #4CAF50; }
+        .validation-message { display: none; color: #f44336; font-size: 12px; margin-top: 5px; }
+        input:invalid:not(:placeholder-shown) + .validation-message { display: block; }
         button { background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px; }
+        button:hover { background-color: #45a049; }
+        .btn-edit { background-color: #FF9800; padding: 5px 10px; font-size: 12px; margin: 0 5px 0 0; }
+        .btn-edit:hover { background-color: #F57C00; }
         .btn-delete { background-color: #f44336; padding: 5px 10px; font-size: 12px; margin: 0; }
+        .btn-delete:hover { background-color: #d32f2f; }
+
+        /* Search and filter section */
+        .search-section { margin-bottom: 20px; display: flex; align-items: center; gap: 15px; }
+        .search-box { flex: 1; max-width: 400px; padding: 10px; border: 2px solid #2196F3; border-radius: 4px; font-size: 14px; }
+        .search-box:focus { outline: none; border-color: #1976D2; }
+        .record-count { color: #666; font-size: 14px; font-weight: bold; }
+
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         table th, table td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
-        table th { background-color: #f5f5f5; }
+        table th { background-color: #f5f5f5; cursor: pointer; user-select: none; position: relative; }
+        table th:hover { background-color: #e8e8e8; }
+        table th .sort-indicator { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: #999; font-size: 12px; }
+        table th.sort-asc .sort-indicator::after { content: ' ↑'; color: #2196F3; }
+        table th.sort-desc .sort-indicator::after { content: ' ↓'; color: #2196F3; }
+        table tr:hover { background-color: #f9f9f9; }
+        table tbody tr:nth-child(even) { background-color: #f9f9f9; }
+        table tbody tr:nth-child(even):hover { background-color: #f0f0f0; }
+
         .message { padding: 12px; border-radius: 4px; margin-bottom: 15px; }
         .success { background-color: #d4edda; color: #155724; }
         .error { background-color: #f8d7da; color: #721c24; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: #fefefe; margin: 10% auto; padding: 20px; border-radius: 5px; width: 90%; max-width: 500px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .modal-header { border-bottom: 2px solid #2196F3; padding-bottom: 10px; margin-bottom: 20px; }
+        .modal-header h2 { margin: 0; color: #2196F3; }
+        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close:hover, .close:focus { color: #000; }
+        .modal-buttons { margin-top: 20px; text-align: right; }
+        .modal-buttons button { margin-left: 10px; }
+        .btn-cancel { background-color: #757575; }
+        .btn-cancel:hover { background-color: #616161; }
+        small { display: block; margin-top: 5px; color: #666; font-style: italic; }
     </style>
 </head>
 <body>
@@ -49,10 +85,44 @@
 
 <div class="section">
     <h2>Create New Group</h2>
-    <form action="/admin/groups/create" method="post">
+    <form action="/admin/groups/create" method="post" id="createGroupForm">
         <div class="form-group">
-            <label>Course Year (Format: YYYY/YYYY):</label>
-            <input type="text" name="courseYear" placeholder="e.g., 2024/2025" required>
+            <label>Program Initials:</label>
+            <input type="text"
+                   name="programInitials"
+                   id="programInitials"
+                   placeholder="e.g., PI, CS, BA"
+                   required
+                   minlength="2"
+                   maxlength="3"
+                   pattern="[A-Za-z]{2,3}"
+                   style="text-transform: uppercase;">
+            <span class="validation-message">Program initials must be 2-3 letters</span>
+            <small>2-3 characters (e.g., PI, CS, BA)</small>
+        </div>
+        <div class="form-group">
+            <label>Start Year (2 digits):</label>
+            <input type="number"
+                   name="startYear"
+                   id="startYear"
+                   placeholder="e.g., 24, 25"
+                   required
+                   min="0"
+                   max="99">
+            <span class="validation-message">Year must be between 0 and 99</span>
+            <small>Last 2 digits of year (e.g., 24 for 2024)</small>
+        </div>
+        <div class="form-group">
+            <label>Language Code (Optional):</label>
+            <input type="text"
+                   name="languageCode"
+                   id="languageCode"
+                   placeholder="e.g., E, L"
+                   maxlength="1"
+                   pattern="[A-Za-z]?"
+                   style="text-transform: uppercase;">
+            <span class="validation-message">Language code must be a single letter</span>
+            <small>Single character (e.g., E for English, L for Lithuanian) - leave empty if not needed</small>
         </div>
         <button type="submit">Create Group</button>
     </form>
@@ -60,19 +130,58 @@
 
 <div class="section">
     <h2>All Groups</h2>
-    <table>
+
+    <!-- Search and filter section -->
+    <div class="search-section">
+        <input type="text"
+               id="searchBox"
+               class="search-box"
+               placeholder="🔍 Search by ID, code, program, year, or language..."
+               onkeyup="filterTable()">
+        <span class="record-count" id="recordCount">Showing 0 of 0 groups</span>
+    </div>
+
+    <table id="groupsTable">
         <thead>
-        <tr><th>ID</th><th>Course Year</th><th>Actions</th></tr>
+        <tr>
+            <th onclick="sortTable(0)" data-sort="none">
+                ID<span class="sort-indicator"></span>
+            </th>
+            <th onclick="sortTable(1)" data-sort="none">
+                Group Code<span class="sort-indicator"></span>
+            </th>
+            <th onclick="sortTable(2)" data-sort="none">
+                Program<span class="sort-indicator"></span>
+            </th>
+            <th onclick="sortTable(3)" data-sort="none">
+                Year<span class="sort-indicator"></span>
+            </th>
+            <th onclick="sortTable(4)" data-sort="none">
+                Language<span class="sort-indicator"></span>
+            </th>
+            <th>Actions</th>
+        </tr>
         </thead>
         <tbody>
         <tr th:if="${#lists.isEmpty(groups)}">
-            <td colspan="3" style="text-align: center; color: #999;">No groups found.</td>
+            <td colspan="6" style="text-align: center; color: #999;">No groups found.</td>
         </tr>
         <tr th:each="group : ${groups}">
             <td th:text="${group.groupId}"></td>
-            <td th:text="${group.courseYear != null ? group.courseYear : 'Not set'}"></td>
+            <td th:text="${group.groupCode != null ? group.groupCode : 'Not set'}"></td>
+            <td th:text="${group.programInitials != null ? group.programInitials : '-'}"></td>
+            <td th:text="${group.startYear != null ? group.startYear : '-'}"></td>
+            <td th:text="${group.languageCode != null ? group.languageCode : '-'}"></td>
             <td>
-                <form th:action="@{'/admin/groups/delete/' + ${group.groupId}}" method="post" style="display: inline;" onsubmit="return confirm('Delete this group?');">
+                <button type="button" class="btn-edit"
+                        th:data-id="${group.groupId}"
+                        th:data-program="${group.programInitials != null ? group.programInitials : ''}"
+                        th:data-year="${group.startYear != null ? group.startYear : ''}"
+                        th:data-language="${group.languageCode != null ? group.languageCode : ''}"
+                        onclick="openEditModal(this.dataset.id, this.dataset.program, this.dataset.year, this.dataset.language)">
+                    Edit
+                </button>
+                <form th:action="@{'/admin/groups/delete/' + ${group.groupId}}" method="post" style="display: inline;" onsubmit="return confirm('Delete this group? Students in this group will have their group set to null.');">
                     <button type="submit" class="btn-delete">Delete</button>
                 </form>
             </td>
@@ -80,5 +189,238 @@
         </tbody>
     </table>
 </div>
+
+<!-- Edit Group Modal -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="close" onclick="closeEditModal()">&times;</span>
+            <h2>Edit Group</h2>
+        </div>
+        <form id="editForm" method="post">
+            <div class="form-group">
+                <label>Program Initials:</label>
+                <input type="text"
+                       id="editProgramInitials"
+                       name="programInitials"
+                       required
+                       minlength="2"
+                       maxlength="3"
+                       pattern="[A-Za-z]{2,3}"
+                       style="text-transform: uppercase;">
+                <span class="validation-message">Program initials must be 2-3 letters</span>
+                <small>2-3 characters (e.g., PI, CS, BA)</small>
+            </div>
+            <div class="form-group">
+                <label>Start Year (2 digits):</label>
+                <input type="number"
+                       id="editStartYear"
+                       name="startYear"
+                       required
+                       min="0"
+                       max="99">
+                <span class="validation-message">Year must be between 0 and 99</span>
+                <small>Last 2 digits of year (e.g., 24 for 2024)</small>
+            </div>
+            <div class="form-group">
+                <label>Language Code (Optional):</label>
+                <input type="text"
+                       id="editLanguageCode"
+                       name="languageCode"
+                       maxlength="1"
+                       pattern="[A-Za-z]?"
+                       style="text-transform: uppercase;">
+                <span class="validation-message">Language code must be a single letter</span>
+                <small>Single character (e.g., E for English, L for Lithuanian)</small>
+            </div>
+            <div class="modal-buttons">
+                <button type="button" class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+                <button type="submit">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Form validation
+    document.getElementById('createGroupForm').addEventListener('submit', function(e) {
+        const programInitials = document.getElementById('programInitials');
+        const startYear = document.getElementById('startYear');
+        const languageCode = document.getElementById('languageCode');
+
+        if (!programInitials.value.trim() || programInitials.value.length < 2 || programInitials.value.length > 3) {
+            e.preventDefault();
+            programInitials.focus();
+            return false;
+        }
+
+        const year = parseInt(startYear.value);
+        if (isNaN(year) || year < 0 || year > 99) {
+            e.preventDefault();
+            startYear.focus();
+            return false;
+        }
+
+        if (languageCode.value.trim() && languageCode.value.length !== 1) {
+            e.preventDefault();
+            languageCode.focus();
+            return false;
+        }
+    });
+
+    // Search/filter functionality
+    function filterTable() {
+        const searchValue = document.getElementById('searchBox').value.toLowerCase();
+        const table = document.getElementById('groupsTable');
+        const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+        let visibleCount = 0;
+        let totalCount = 0;
+
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            // Skip the "no groups" message row
+            if (row.cells.length === 1 && row.cells[0].colSpan > 1) {
+                continue;
+            }
+
+            totalCount++;
+            const id = row.cells[0].textContent.toLowerCase();
+            const groupCode = row.cells[1].textContent.toLowerCase();
+            const program = row.cells[2].textContent.toLowerCase();
+            const year = row.cells[3].textContent.toLowerCase();
+            const language = row.cells[4].textContent.toLowerCase();
+
+            if (id.includes(searchValue) || groupCode.includes(searchValue) ||
+                program.includes(searchValue) || year.includes(searchValue) ||
+                language.includes(searchValue)) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        }
+
+        // Update record count
+        document.getElementById('recordCount').textContent = `Showing ${visibleCount} of ${totalCount} groups`;
+    }
+
+    // Sorting functionality
+    function sortTable(columnIndex) {
+        const table = document.getElementById('groupsTable');
+        const tbody = table.getElementsByTagName('tbody')[0];
+        const rows = Array.from(tbody.getElementsByTagName('tr'));
+        const header = table.getElementsByTagName('th')[columnIndex];
+
+        // Skip if no data rows
+        if (rows.length === 1 && rows[0].cells.length === 1 && rows[0].cells[0].colSpan > 1) {
+            return;
+        }
+
+        // Get current sort direction
+        let currentSort = header.getAttribute('data-sort');
+        let newSort = currentSort === 'asc' ? 'desc' : 'asc';
+
+        // Reset all headers
+        const headers = table.getElementsByTagName('th');
+        for (let i = 0; i < headers.length; i++) {
+            headers[i].setAttribute('data-sort', 'none');
+            headers[i].classList.remove('sort-asc', 'sort-desc');
+        }
+
+        // Set new sort direction
+        header.setAttribute('data-sort', newSort);
+        header.classList.add('sort-' + newSort);
+
+        // Sort rows
+        rows.sort((a, b) => {
+            let aValue = a.cells[columnIndex].textContent.trim();
+            let bValue = b.cells[columnIndex].textContent.trim();
+
+            // Check if numeric (for ID and Year columns)
+            const aNum = parseFloat(aValue);
+            const bNum = parseFloat(bValue);
+
+            if (!isNaN(aNum) && !isNaN(bNum)) {
+                return newSort === 'asc' ? aNum - bNum : bNum - aNum;
+            }
+
+            // String comparison
+            if (newSort === 'asc') {
+                return aValue.localeCompare(bValue);
+            } else {
+                return bValue.localeCompare(aValue);
+            }
+        });
+
+        // Reappend rows in sorted order
+        rows.forEach(row => tbody.appendChild(row));
+    }
+
+    // Modal functions
+    function openEditModal(groupId, programInitials, startYear, languageCode) {
+        const modal = document.getElementById('editModal');
+        const form = document.getElementById('editForm');
+
+        form.action = '/admin/groups/update/' + groupId;
+
+        document.getElementById('editProgramInitials').value = programInitials !== 'null' && programInitials !== '' ? programInitials : '';
+        document.getElementById('editStartYear').value = startYear !== 'null' && startYear !== '' ? startYear : '';
+        document.getElementById('editLanguageCode').value = languageCode !== 'null' && languageCode !== '' ? languageCode : '';
+
+        modal.style.display = 'block';
+    }
+
+    function closeEditModal() {
+        const modal = document.getElementById('editModal');
+        modal.style.display = 'none';
+        document.getElementById('editForm').reset();
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('editModal');
+        if (event.target === modal) {
+            closeEditModal();
+        }
+    }
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            const modal = document.getElementById('editModal');
+            if (modal.style.display === 'block') {
+                closeEditModal();
+            }
+        }
+    });
+
+    document.getElementById('editForm').addEventListener('submit', function(e) {
+        const programInitials = document.getElementById('editProgramInitials');
+        const startYear = document.getElementById('editStartYear');
+        const languageCode = document.getElementById('editLanguageCode');
+
+        if (!programInitials.value.trim() || programInitials.value.length < 2 || programInitials.value.length > 3) {
+            e.preventDefault();
+            programInitials.focus();
+            return false;
+        }
+
+        const year = parseInt(startYear.value);
+        if (isNaN(year) || year < 0 || year > 99) {
+            e.preventDefault();
+            startYear.focus();
+            return false;
+        }
+
+        if (languageCode.value.trim() && languageCode.value.length !== 1) {
+            e.preventDefault();
+            languageCode.focus();
+            return false;
+        }
+    });
+
+    // Initialize record count on page load
+    window.addEventListener('DOMContentLoaded', function() {
+        filterTable();
+    });
+</script>
 </body>
 </html>

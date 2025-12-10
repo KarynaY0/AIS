@@ -14,13 +14,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Pattern;
 
 @Service
 @Transactional
 public class GroupService {
-
-    private static final Pattern COURSE_YEAR_PATTERN = Pattern.compile("^\\d{4}/\\d{4}$");
 
     private final GroupRepository groupRepository;
     private final StudentRepository studentRepository;
@@ -38,26 +35,98 @@ public class GroupService {
         this.groupSubjectRepository = groupSubjectRepository;
     }
 
-    public Group createGroup(String courseYear) {
-        if (courseYear != null && !courseYear.trim().isEmpty()) {
-            if (!COURSE_YEAR_PATTERN.matcher(courseYear).matches()) {
-                throw new IllegalArgumentException("Course year must be in format YYYY/YYYY (e.g., 2023/2024)");
-            }
+    /**
+     * Create a new group with the new format
+     * Format: [ProgramInitials][Year][LanguageCode]
+     * Example: PI24E, CS23, BA24L
+     */
+    public Group createGroup(String programInitials, Integer startYear, String languageCode) {
+        // Validate program initials (2-3 letters)
+        if (programInitials == null || programInitials.trim().isEmpty()) {
+            throw new IllegalArgumentException("Program initials are required");
+        }
+        if (programInitials.length() < 2 || programInitials.length() > 3) {
+            throw new IllegalArgumentException("Program initials must be 2-3 letters");
         }
 
-        Group group = new Group(courseYear);
+        // Validate start year (0-99)
+        if (startYear == null) {
+            throw new IllegalArgumentException("Start year is required");
+        }
+        if (startYear < 0 || startYear > 99) {
+            throw new IllegalArgumentException("Start year must be between 0 and 99");
+        }
+
+        // Validate language code (1 letter, optional)
+        if (languageCode != null && !languageCode.trim().isEmpty() && languageCode.length() != 1) {
+            throw new IllegalArgumentException("Language code must be exactly 1 letter");
+        }
+
+        // Build group code
+        String groupCode = programInitials + startYear + (languageCode != null ? languageCode : "");
+
+        // Check if group code already exists
+        if (groupRepository.existsByGroupCode(groupCode)) {
+            throw new IllegalArgumentException("Group code already exists: " + groupCode);
+        }
+
+        Group group = new Group();
+        group.setGroupCode(groupCode);
+        group.setProgramInitials(programInitials);
+        group.setStartYear(startYear);
+        group.setLanguageCode(languageCode);
+
         return groupRepository.save(group);
     }
 
-    public Group updateGroup(Long groupId, String newCourseYear) {
+    /**
+     * Update group with new format
+     */
+    public Group updateGroup(Long groupId, String newProgramInitials, Integer newStartYear, String newLanguageCode) {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(() -> new IllegalArgumentException("Group not found with ID: " + groupId));
 
-        if (newCourseYear != null && !newCourseYear.trim().isEmpty()) {
-            if (!COURSE_YEAR_PATTERN.matcher(newCourseYear).matches()) {
-                throw new IllegalArgumentException("Course year must be in format YYYY/YYYY (e.g., 2023/2024)");
+        boolean changed = false;
+
+        // Update program initials if provided
+        if (newProgramInitials != null && !newProgramInitials.trim().isEmpty()) {
+            if (newProgramInitials.length() < 2 || newProgramInitials.length() > 3) {
+                throw new IllegalArgumentException("Program initials must be 2-3 letters");
             }
-            group.setCourseYear(newCourseYear);
+            group.setProgramInitials(newProgramInitials);
+            changed = true;
+        }
+
+        // Update start year if provided
+        if (newStartYear != null) {
+            if (newStartYear < 0 || newStartYear > 99) {
+                throw new IllegalArgumentException("Start year must be between 0 and 99");
+            }
+            group.setStartYear(newStartYear);
+            changed = true;
+        }
+
+        // Update language code if provided
+        if (newLanguageCode != null) {
+            if (!newLanguageCode.trim().isEmpty() && newLanguageCode.length() != 1) {
+                throw new IllegalArgumentException("Language code must be exactly 1 letter");
+            }
+            group.setLanguageCode(newLanguageCode.trim().isEmpty() ? null : newLanguageCode);
+            changed = true;
+        }
+
+        // Rebuild group code if anything changed
+        if (changed) {
+            String newGroupCode = group.getProgramInitials() + group.getStartYear() +
+                    (group.getLanguageCode() != null ? group.getLanguageCode() : "");
+
+            // Check if new code already exists (and it's not the current group)
+            Optional<Group> existing = groupRepository.findByGroupCode(newGroupCode);
+            if (existing.isPresent() && !existing.get().getGroupId().equals(groupId)) {
+                throw new IllegalArgumentException("Group code already exists: " + newGroupCode);
+            }
+
+            group.setGroupCode(newGroupCode);
         }
 
         return groupRepository.save(group);
@@ -76,13 +145,18 @@ public class GroupService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<Group> findByCourseYear(String courseYear) {
-        return groupRepository.findByCourseYear(courseYear);
+    public Optional<Group> findByGroupCode(String groupCode) {
+        return groupRepository.findByGroupCode(groupCode);
     }
 
     @Transactional(readOnly = true)
-    public List<Group> findAllByCourseYear(String courseYear) {
-        return groupRepository.findAllByCourseYear(courseYear);
+    public List<Group> findByProgramInitials(String programInitials) {
+        return groupRepository.findByProgramInitials(programInitials);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Group> findByStartYear(Integer startYear) {
+        return groupRepository.findByStartYear(startYear);
     }
 
     @Transactional(readOnly = true)
@@ -93,11 +167,6 @@ public class GroupService {
     @Transactional(readOnly = true)
     public List<Group> getGroupsBySubject(Long subjectId) {
         return groupRepository.findBySubjectId(subjectId);
-    }
-
-    @Transactional(readOnly = true)
-    public List<Group> getGroupsBySemester(String academicSemester) {
-        return groupRepository.findByAcademicSemester(academicSemester);
     }
 
     @Transactional(readOnly = true)
@@ -123,11 +192,6 @@ public class GroupService {
     @Transactional(readOnly = true)
     public List<Subject> getSubjectsInGroup(Long groupId) {
         return subjectRepository.findByGroupId(groupId);
-    }
-
-    @Transactional(readOnly = true)
-    public List<Subject> getSubjectsByGroupAndSemester(Long groupId, String semester) {
-        return subjectRepository.findByGroupIdAndSemester(groupId, semester);
     }
 
     @Transactional(readOnly = true)
@@ -164,23 +228,18 @@ public class GroupService {
     }
 
     @Transactional(readOnly = true)
-    public boolean existsByCourseYear(String courseYear) {
-        return groupRepository.existsByCourseYear(courseYear);
+    public boolean existsByGroupCode(String groupCode) {
+        return groupRepository.existsByGroupCode(groupCode);
     }
 
     @Transactional(readOnly = true)
-    public List<Group> searchByCourseYear(String yearPattern) {
-        return groupRepository.findByCourseYearContaining(yearPattern);
+    public List<String> getAllProgramInitials() {
+        return groupRepository.findAllProgramInitials();
     }
 
     @Transactional(readOnly = true)
-    public List<String> getAllCourseYears() {
-        return groupRepository.findAllCourseYears();
-    }
-
-    @Transactional(readOnly = true)
-    public List<Group> getGroupsBySemesterAndCourseYear(String semester, String courseYear) {
-        return groupRepository.findBySemesterAndCourseYear(semester, courseYear);
+    public List<Integer> getAllStartYears() {
+        return groupRepository.findAllStartYears();
     }
 
     @Transactional(readOnly = true)
@@ -198,11 +257,17 @@ public class GroupService {
 
         return String.format(
                 "Group ID: %d\n" +
-                        "Course Year: %s\n" +
+                        "Group Code: %s\n" +
+                        "Program: %s\n" +
+                        "Start Year: %d\n" +
+                        "Language: %s\n" +
                         "Students: %d\n" +
                         "Subjects: %d",
                 group.getGroupId(),
-                group.getCourseYear() != null ? group.getCourseYear() : "Not set",
+                group.getGroupCode(),
+                group.getProgramInitials(),
+                group.getStartYear(),
+                group.getLanguageCode() != null ? group.getLanguageCode() : "Not specified",
                 studentCount,
                 subjectCount
         );
@@ -239,8 +304,11 @@ public class GroupService {
         StringBuilder stats = new StringBuilder();
         stats.append("=== Group Statistics ===\n");
         stats.append(String.format("Group ID: %d\n", group.getGroupId()));
-        stats.append(String.format("Course Year: %s\n",
-                group.getCourseYear() != null ? group.getCourseYear() : "Not set"));
+        stats.append(String.format("Group Code: %s\n", group.getGroupCode()));
+        stats.append(String.format("Program: %s\n", group.getProgramInitials()));
+        stats.append(String.format("Start Year: %d\n", group.getStartYear()));
+        stats.append(String.format("Language: %s\n",
+                group.getLanguageCode() != null ? group.getLanguageCode() : "Not specified"));
         stats.append(String.format("Total Students: %d\n", studentCount));
         stats.append(String.format("Total Subjects: %d\n", subjectCount));
         stats.append(String.format("Status: %s\n",

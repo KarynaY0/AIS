@@ -79,12 +79,45 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     List<Student> findBySubjectId(@Param("subjectId") Long subjectId);
 
     /**
-     * Find students by course year
-     * @param courseYear the course year (format: YYYY/YYYY)
-     * @return List of students in the specified course year
+     * Find students by group code (NEW FORMAT)
+     * @param groupCode the group code (e.g., "PI24E", "CS23")
+     * @return List of students in the specified group
      */
-    @Query("SELECT s FROM Student s WHERE s.group.courseYear = :courseYear")
-    List<Student> findByCourseYear(@Param("courseYear") String courseYear);
+    @Query("SELECT s FROM Student s WHERE s.group.groupCode = :groupCode")
+    List<Student> findByGroupCode(@Param("groupCode") String groupCode);
+
+    /**
+     * Find students by program initials
+     * @param programInitials the program initials (e.g., "PI", "CS")
+     * @return List of students in groups with matching program
+     */
+    @Query("SELECT s FROM Student s WHERE s.group.programInitials = :programInitials")
+    List<Student> findByProgramInitials(@Param("programInitials") String programInitials);
+
+    /**
+     * Find students by start year
+     * @param startYear the start year (e.g., 24, 23)
+     * @return List of students in groups starting in that year
+     */
+    @Query("SELECT s FROM Student s WHERE s.group.startYear = :startYear")
+    List<Student> findByStartYear(@Param("startYear") Integer startYear);
+
+    /**
+     * Find students by language code
+     * @param languageCode the language code (e.g., "E", "L")
+     * @return List of students in groups with matching language
+     */
+    @Query("SELECT s FROM Student s WHERE s.group.languageCode = :languageCode")
+    List<Student> findByLanguageCode(@Param("languageCode") String languageCode);
+
+    /**
+     * Find students by program and year
+     * @param programInitials the program initials
+     * @param startYear the start year
+     * @return List of students matching both criteria
+     */
+    @Query("SELECT s FROM Student s WHERE s.group.programInitials = :programInitials AND s.group.startYear = :startYear")
+    List<Student> findByProgramAndYear(@Param("programInitials") String programInitials, @Param("startYear") Integer startYear);
 
     /**
      * Count students in a specific group

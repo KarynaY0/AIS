@@ -19,17 +19,44 @@
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
         input, select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        input:focus, select:focus { outline: none; border-color: #4CAF50; }
+        input:invalid:not(:placeholder-shown) { border-color: #f44336; }
+        input:valid:not(:placeholder-shown) { border-color: #4CAF50; }
+        select:invalid { border-color: #f44336; }
+        .validation-message { display: none; color: #f44336; font-size: 12px; margin-top: 5px; }
+        input:invalid:not(:placeholder-shown) + .validation-message { display: block; }
         button { background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; margin-top: 10px; }
         button:hover { background-color: #45a049; }
+        .btn-edit { background-color: #2196F3; padding: 5px 10px; font-size: 12px; margin: 0 5px 0 0; }
+        .btn-edit:hover { background-color: #1976D2; }
         .btn-delete { background-color: #f44336; padding: 5px 10px; font-size: 12px; margin: 0; }
         .btn-delete:hover { background-color: #d32f2f; }
+
+        /* Search and filter section */
+        .search-section { margin-bottom: 20px; display: flex; align-items: center; gap: 15px; }
+        .search-box { flex: 1; max-width: 400px; padding: 10px; border: 2px solid #2196F3; border-radius: 4px; font-size: 14px; }
+        .search-box:focus { outline: none; border-color: #1976D2; }
+        .record-count { color: #666; font-size: 14px; font-weight: bold; }
+
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         table th, table td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
-        table th { background-color: #f5f5f5; font-weight: bold; }
+        table th { background-color: #f5f5f5; font-weight: bold; cursor: pointer; user-select: none; position: relative; }
+        table th:hover { background-color: #e8e8e8; }
+        table th .sort-indicator { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: #999; font-size: 12px; }
+        table th.sort-asc .sort-indicator::after { content: ' ↑'; color: #2196F3; }
+        table th.sort-desc .sort-indicator::after { content: ' ↓'; color: #2196F3; }
         table tr:hover { background-color: #f9f9f9; }
+        table tbody tr:nth-child(even) { background-color: #f9f9f9; }
+        table tbody tr:nth-child(even):hover { background-color: #f0f0f0; }
+
         .message { padding: 12px; border-radius: 4px; margin-bottom: 15px; }
         .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
         .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
+        .modal-content { background-color: white; margin: 5% auto; padding: 30px; border-radius: 8px; width: 90%; max-width: 500px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close:hover { color: #000; }
+        .modal h2 { margin-top: 0; color: #2196F3; }
     </style>
 </head>
 <body>
@@ -50,21 +77,32 @@
     </form>
 </div>
 
-<!-- Success/Error Messages -->
 <div th:if="${successMessage}" class="message success" th:text="${successMessage}"></div>
 <div th:if="${errorMessage}" class="message error" th:text="${errorMessage}"></div>
 
 <div class="section">
     <h2>Create New Student</h2>
-    <form action="/admin/students/create" method="post">
+    <form action="/admin/students/create" method="post" id="createStudentForm">
         <div class="form-group">
             <label for="firstName">First Name (will be Username):</label>
-            <input type="text" id="firstName" name="firstName" required>
+            <input type="text"
+                   id="firstName"
+                   name="firstName"
+                   required
+                   minlength="2"
+                   placeholder="Enter first name">
+            <span class="validation-message">First name must be at least 2 characters</span>
         </div>
 
         <div class="form-group">
             <label for="lastName">Last Name (will be Password):</label>
-            <input type="text" id="lastName" name="lastName" required>
+            <input type="text"
+                   id="lastName"
+                   name="lastName"
+                   required
+                   minlength="2"
+                   placeholder="Enter last name">
+            <span class="validation-message">Last name must be at least 2 characters</span>
         </div>
 
         <div class="form-group">
@@ -73,7 +111,7 @@
                 <option value="">No Group</option>
                 <option th:each="group : ${groups}"
                         th:value="${group.groupId}"
-                        th:text="${group.courseYear != null ? group.courseYear : 'Group ' + group.groupId}">
+                        th:text="${group.groupCode != null ? group.groupCode : 'Group ' + group.groupId}">
                 </option>
             </select>
         </div>
@@ -84,12 +122,29 @@
 
 <div class="section">
     <h2>All Students</h2>
-    <table>
+
+    <!-- Search and filter section -->
+    <div class="search-section">
+        <input type="text"
+               id="searchBox"
+               class="search-box"
+               placeholder="🔍 Search by ID, username, or group..."
+               onkeyup="filterTable()">
+        <span class="record-count" id="recordCount">Showing 0 of 0 students</span>
+    </div>
+
+    <table id="studentsTable">
         <thead>
         <tr>
-            <th>ID</th>
-            <th>Username</th>
-            <th>Group</th>
+            <th onclick="sortTable(0)" data-sort="none">
+                ID<span class="sort-indicator"></span>
+            </th>
+            <th onclick="sortTable(1)" data-sort="none">
+                Username<span class="sort-indicator"></span>
+            </th>
+            <th onclick="sortTable(2)" data-sort="none">
+                Group<span class="sort-indicator"></span>
+            </th>
             <th>Actions</th>
         </tr>
         </thead>
@@ -100,9 +155,16 @@
         <tr th:each="student : ${students}">
             <td th:text="${student.user.userId}"></td>
             <td><strong th:text="${student.user.username}"></strong></td>
-            <td th:text="${student.group != null ? student.group.courseYear : 'No Group'}"></td>
+            <td th:text="${student.group != null ? student.group.groupCode : 'No Group'}"></td>
             <td>
-                <form action="/admin/students/delete/${student.user.userId}" th:action="@{'/admin/students/delete/' + ${student.user.userId}}" method="post" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this student?');">
+                <button type="button" class="btn-edit"
+                        th:data-id="${student.user.userId}"
+                        th:data-username="${student.user.username}"
+                        th:data-groupid="${student.group != null ? student.group.groupId : ''}"
+                        onclick="openEditModal(this.dataset.id, this.dataset.username, this.dataset.groupid)">
+                    Edit
+                </button>
+                <form th:action="@{'/admin/students/delete/' + ${student.user.userId}}" method="post" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this student?');">
                     <button type="submit" class="btn-delete">Delete</button>
                 </form>
             </td>
@@ -110,5 +172,204 @@
         </tbody>
     </table>
 </div>
+
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeEditModal()">&times;</span>
+        <h2>Edit Student</h2>
+
+        <form method="POST" id="editForm">
+            <input type="hidden" id="editStudentId" name="userId">
+
+            <div class="form-group">
+                <label>New Username (leave empty to keep current):</label>
+                <input type="text"
+                       id="editUsername"
+                       name="username"
+                       minlength="2"
+                       placeholder="Leave empty to keep current">
+                <span class="validation-message">Username must be at least 2 characters</span>
+            </div>
+
+            <div class="form-group">
+                <label>New Password (leave empty to keep current):</label>
+                <input type="password"
+                       id="editPassword"
+                       name="password"
+                       minlength="2"
+                       placeholder="Leave empty to keep current">
+                <span class="validation-message">Password must be at least 2 characters</span>
+            </div>
+
+            <div class="form-group">
+                <label>Select Group:</label>
+                <select id="editGroupId" name="groupId">
+                    <option value="">No Group</option>
+                    <option th:each="group : ${groups}"
+                            th:value="${group.groupId}"
+                            th:text="${group.groupCode != null ? group.groupCode : 'Group ' + group.groupId}">
+                    </option>
+                </select>
+            </div>
+
+            <button type="submit">Update Student</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Form validation
+    document.getElementById('createStudentForm').addEventListener('submit', function(e) {
+        const firstName = document.getElementById('firstName');
+        const lastName = document.getElementById('lastName');
+
+        if (!firstName.value.trim() || firstName.value.length < 2) {
+            e.preventDefault();
+            firstName.focus();
+            return false;
+        }
+
+        if (!lastName.value.trim() || lastName.value.length < 2) {
+            e.preventDefault();
+            lastName.focus();
+            return false;
+        }
+    });
+
+    // Search/filter functionality
+    function filterTable() {
+        const searchValue = document.getElementById('searchBox').value.toLowerCase();
+        const table = document.getElementById('studentsTable');
+        const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+        let visibleCount = 0;
+        let totalCount = 0;
+
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            // Skip the "no students" message row
+            if (row.cells.length === 1 && row.cells[0].colSpan > 1) {
+                continue;
+            }
+
+            totalCount++;
+            const id = row.cells[0].textContent.toLowerCase();
+            const username = row.cells[1].textContent.toLowerCase();
+            const group = row.cells[2].textContent.toLowerCase();
+
+            if (id.includes(searchValue) || username.includes(searchValue) || group.includes(searchValue)) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        }
+
+        // Update record count
+        document.getElementById('recordCount').textContent = `Showing ${visibleCount} of ${totalCount} students`;
+    }
+
+    // Sorting functionality
+    function sortTable(columnIndex) {
+        const table = document.getElementById('studentsTable');
+        const tbody = table.getElementsByTagName('tbody')[0];
+        const rows = Array.from(tbody.getElementsByTagName('tr'));
+        const header = table.getElementsByTagName('th')[columnIndex];
+
+        // Skip if no data rows
+        if (rows.length === 1 && rows[0].cells.length === 1 && rows[0].cells[0].colSpan > 1) {
+            return;
+        }
+
+        // Get current sort direction
+        let currentSort = header.getAttribute('data-sort');
+        let newSort = currentSort === 'asc' ? 'desc' : 'asc';
+
+        // Reset all headers
+        const headers = table.getElementsByTagName('th');
+        for (let i = 0; i < headers.length; i++) {
+            headers[i].setAttribute('data-sort', 'none');
+            headers[i].classList.remove('sort-asc', 'sort-desc');
+        }
+
+        // Set new sort direction
+        header.setAttribute('data-sort', newSort);
+        header.classList.add('sort-' + newSort);
+
+        // Sort rows
+        rows.sort((a, b) => {
+            let aValue = a.cells[columnIndex].textContent.trim();
+            let bValue = b.cells[columnIndex].textContent.trim();
+
+            // Check if numeric (for ID column)
+            const aNum = parseFloat(aValue);
+            const bNum = parseFloat(bValue);
+
+            if (!isNaN(aNum) && !isNaN(bNum)) {
+                return newSort === 'asc' ? aNum - bNum : bNum - aNum;
+            }
+
+            // String comparison
+            if (newSort === 'asc') {
+                return aValue.localeCompare(bValue);
+            } else {
+                return bValue.localeCompare(aValue);
+            }
+        });
+
+        // Reappend rows in sorted order
+        rows.forEach(row => tbody.appendChild(row));
+    }
+
+    // Modal functions
+    function openEditModal(studentId, username, groupId) {
+        document.getElementById('editStudentId').value = studentId;
+        document.getElementById('editUsername').value = '';
+        document.getElementById('editUsername').placeholder = 'Current: ' + username;
+        document.getElementById('editPassword').value = '';
+        document.getElementById('editForm').action = '/admin/students/update/' + studentId;
+
+        var groupSelect = document.getElementById('editGroupId');
+        if (groupId) {
+            groupSelect.value = groupId;
+        } else {
+            groupSelect.value = '';
+        }
+
+        document.getElementById('editModal').style.display = 'block';
+    }
+
+    function closeEditModal() {
+        document.getElementById('editModal').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        var modal = document.getElementById('editModal');
+        if (event.target == modal) {
+            closeEditModal();
+        }
+    }
+
+    document.getElementById('editForm').addEventListener('submit', function(e) {
+        const username = document.getElementById('editUsername');
+        const password = document.getElementById('editPassword');
+
+        if (username.value.trim() && username.value.length < 2) {
+            e.preventDefault();
+            username.focus();
+            return false;
+        }
+
+        if (password.value.trim() && password.value.length < 2) {
+            e.preventDefault();
+            password.focus();
+            return false;
+        }
+    });
+
+    // Initialize record count on page load
+    window.addEventListener('DOMContentLoaded', function() {
+        filterTable();
+    });
+</script>
 </body>
 </html>

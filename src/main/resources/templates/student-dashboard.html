@@ -5,252 +5,53 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Dashboard - AIS</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background-color: #f5f5f5; }
+        .header { background-color: #2196F3; color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 24px; }
+        .user-info { display: flex; align-items: center; gap: 20px; }
+        .logout-btn { background-color: #f44336; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
+        .logout-btn:hover { background-color: #d32f2f; }
+        .container { max-width: 1400px; margin: 20px auto; padding: 0 20px; }
+        .section { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h2 { color: #333; margin-bottom: 20px; border-bottom: 2px solid #2196F3; padding-bottom: 10px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); color: white; padding: 25px; border-radius: 8px; text-align: center; }
+        .stat-card h3 { font-size: 14px; opacity: 0.9; margin-bottom: 10px; text-transform: uppercase; }
+        .stat-value { font-size: 36px; font-weight: bold; margin-bottom: 5px; }
+        .stat-label { font-size: 12px; opacity: 0.8; }
+        .message { padding: 12px; border-radius: 4px; margin-bottom: 15px; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info-box { background-color: #e3f2fd; border-left: 4px solid #2196F3; padding: 15px; margin-bottom: 20px; }
+        .filter-section { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+        .filter-section label { font-weight: bold; color: #555; }
+        .filter-section select { padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        .filter-section button { background-color: #2196F3; color: white; padding: 8px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .filter-section button:hover { background-color: #1976D2; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        table th, table td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        table th { background-color: #f5f5f5; font-weight: bold; }
+        table tr:hover { background-color: #f9f9f9; }
+        .grade-badge { padding: 5px 10px; border-radius: 4px; font-weight: bold; display: inline-block; }
+        .grade-excellent { background-color: #4CAF50; color: white; }
+        .grade-good { background-color: #8BC34A; color: white; }
+        .grade-average { background-color: #FFC107; color: #333; }
+        .grade-poor { background-color: #FF5722; color: white; }
 
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-        }
+        /* Grade trend indicator styles */
+        .trend-indicator { display: inline-block; margin-left: 8px; font-weight: bold; font-size: 16px; }
+        .trend-up { color: #4CAF50; }
+        .trend-down { color: #f44336; }
+        .trend-stable { color: #757575; }
 
-        .header {
-            background-color: #2196F3;
-            color: white;
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .header h1 {
-            font-size: 24px;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .logout-btn {
-            background-color: #f44336;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .logout-btn:hover {
-            background-color: #d32f2f;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 20px auto;
-            padding: 0 20px;
-        }
-
-        .section {
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-
-        h2 {
-            color: #333;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #2196F3;
-            padding-bottom: 10px;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
-            color: white;
-            padding: 25px;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .stat-card h3 {
-            font-size: 14px;
-            opacity: 0.9;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-        }
-
-        .stat-value {
-            font-size: 36px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            opacity: 0.8;
-        }
-
-        .message {
-            padding: 12px;
-            border-radius: 4px;
-            margin-bottom: 15px;
-        }
-
-        .error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .info-box {
-            background-color: #e3f2fd;
-            border-left: 4px solid #2196F3;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-
-        .filter-section {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .filter-section label {
-            font-weight: bold;
-            color: #555;
-        }
-
-        .filter-section select {
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-
-        .filter-section button {
-            background-color: #2196F3;
-            color: white;
-            padding: 8px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .filter-section button:hover {
-            background-color: #1976D2;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        table th, table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        table th {
-            background-color: #f5f5f5;
-            font-weight: bold;
-        }
-
-        table tr:hover {
-            background-color: #f9f9f9;
-        }
-
-        .grade-badge {
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-weight: bold;
-            display: inline-block;
-        }
-
-        .grade-excellent {
-            background-color: #4CAF50;
-            color: white;
-        }
-
-        .grade-good {
-            background-color: #8BC34A;
-            color: white;
-        }
-
-        .grade-average {
-            background-color: #FFC107;
-            color: #333;
-        }
-
-        .grade-poor {
-            background-color: #FF5722;
-            color: white;
-        }
-
-        .no-data {
-            text-align: center;
-            padding: 40px;
-            color: #999;
-        }
-
-        .subject-name {
-            font-weight: bold;
-            color: #2196F3;
-        }
-
-        .averages-section {
-            margin-top: 30px;
-            padding-top: 30px;
-            border-top: 2px solid #ddd;
-        }
-
-        .averages-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .average-card {
-            background-color: #f5f5f5;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #2196F3;
-        }
-
-        .average-card .subject-code {
-            font-weight: bold;
-            color: #2196F3;
-            margin-bottom: 5px;
-        }
-
-        .average-card .average-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .average-card .grade-count {
-            font-size: 12px;
-            color: #999;
-            margin-top: 5px;
-        }
+        .no-data { text-align: center; padding: 40px; color: #999; }
+        .subject-name { font-weight: bold; color: #2196F3; }
+        .averages-section { margin-top: 30px; padding-top: 30px; border-top: 2px solid #ddd; }
+        .averages-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; }
+        .average-card { background-color: #f5f5f5; padding: 15px; border-radius: 8px; border-left: 4px solid #2196F3; }
+        .average-card .subject-code { font-weight: bold; color: #2196F3; margin-bottom: 5px; }
+        .average-card .average-value { font-size: 24px; font-weight: bold; color: #333; }
+        .average-card .grade-count { font-size: 12px; color: #999; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -279,13 +80,13 @@
         </div>
         <div class="stat-card">
             <h3>Enrolled Subjects</h3>
-            <div class="stat-value" th:text="${subjects != null ? subjects.size() : 0}">0</div>
-            <div class="stat-label">Active courses</div>
+            <div class="stat-value" id="subjectsWithGradesCount" th:text="${subjects != null ? subjects.size() : 0}">0</div>
+            <div class="stat-label" id="subjectsWithGradesLabel">Active courses</div>
         </div>
         <div class="stat-card" th:if="${student != null && student.group != null}">
             <h3>Group</h3>
-            <div class="stat-value" style="font-size: 20px;" th:text="${student.group.courseYear}">N/A</div>
-            <div class="stat-label">Course year</div>
+            <div class="stat-value" style="font-size: 20px;" th:text="${student.group.groupCode}">N/A</div>
+            <div class="stat-label" th:text="${student.group.programInitials} + ' • Started ' + ${student.group.startYear}">CS • Started 2024</div>
         </div>
     </div>
 
@@ -297,7 +98,10 @@
         <h2>My Grades</h2>
 
         <div class="info-box">
-            <p><strong>Note:</strong> All your grades are displayed below. You can filter by subject to view specific course grades.</p>
+            <p><strong>Note:</strong> All your grades are displayed below. You can filter by subject to view specific course grades.
+                Trend indicators show: <span style="color: #4CAF50;">↑ improving</span>,
+                <span style="color: #f44336;">↓ declining</span>,
+                <span style="color: #757575;">→ stable</span></p>
         </div>
 
         <!-- Filter Section -->
@@ -318,7 +122,7 @@
 
         <!-- Grades Table -->
         <div th:if="${hasGrades != null && hasGrades}">
-            <table>
+            <table id="gradesTable">
                 <thead>
                 <tr>
                     <th>Subject</th>
@@ -329,9 +133,13 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="grade : ${grades}">
+                <tr th:each="grade : ${grades}"
+                    th:data-subject-id="${grade.subject.subjectId}"
+                    th:data-grade-value="${grade.gradeValue}"
+                    th:data-updated-time="${grade.updatedTime}">
                     <td>
                         <span class="subject-name" th:text="${grade.subject.code}">MATH101</span>
+                        <span class="trend-indicator" data-trend-placeholder="true"></span>
                     </td>
                     <td>
                         <span class="grade-badge"
@@ -374,5 +182,96 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Calculate grade trends and update "Subjects with Grades" indicator
+    function calculateGradeTrends() {
+        const table = document.getElementById('gradesTable');
+        if (!table) {
+            return;
+        }
+
+        const rows = Array.from(table.getElementsByTagName('tbody')[0].getElementsByTagName('tr'));
+
+        // Group grades by subject
+        const gradesBySubject = {};
+        rows.forEach(row => {
+            const subjectId = row.getAttribute('data-subject-id');
+            const gradeValue = parseFloat(row.getAttribute('data-grade-value'));
+            const updatedTime = row.getAttribute('data-updated-time');
+
+            if (!gradesBySubject[subjectId]) {
+                gradesBySubject[subjectId] = [];
+            }
+
+            gradesBySubject[subjectId].push({
+                gradeValue: gradeValue,
+                updatedTime: new Date(updatedTime),
+                row: row
+            });
+        });
+
+        // Sort each subject's grades by date and calculate trends
+        Object.keys(gradesBySubject).forEach(subjectId => {
+            const grades = gradesBySubject[subjectId];
+
+            // Sort by date (oldest first)
+            grades.sort((a, b) => a.updatedTime - b.updatedTime);
+
+            // Only show trend if there are 2+ grades
+            if (grades.length >= 2) {
+                grades.forEach((gradeData, index) => {
+                    const trendSpan = gradeData.row.querySelector('.trend-indicator');
+
+                    if (index === grades.length - 1) {
+                        // This is the most recent grade - show trend
+                        const previousGrade = grades[index - 1].gradeValue;
+                        const currentGrade = gradeData.gradeValue;
+                        const difference = currentGrade - previousGrade;
+
+                        if (difference >= 5) {
+                            trendSpan.innerHTML = '↑';
+                            trendSpan.className = 'trend-indicator trend-up';
+                            trendSpan.title = `Improved by ${difference.toFixed(1)} points`;
+                        } else if (difference <= -5) {
+                            trendSpan.innerHTML = '↓';
+                            trendSpan.className = 'trend-indicator trend-down';
+                            trendSpan.title = `Declined by ${Math.abs(difference).toFixed(1)} points`;
+                        } else {
+                            trendSpan.innerHTML = '→';
+                            trendSpan.className = 'trend-indicator trend-stable';
+                            trendSpan.title = `Stable (${difference >= 0 ? '+' : ''}${difference.toFixed(1)} points)`;
+                        }
+                    } else {
+                        // Not the most recent grade - remove trend indicator
+                        trendSpan.remove();
+                    }
+                });
+            } else {
+                // Only one grade - remove trend indicator
+                grades.forEach(gradeData => {
+                    const trendSpan = gradeData.row.querySelector('.trend-indicator');
+                    if (trendSpan) {
+                        trendSpan.remove();
+                    }
+                });
+            }
+        });
+
+        // Update "Subjects with Grades" indicator
+        const subjectsWithGrades = Object.keys(gradesBySubject).length;
+        const totalSubjects = parseInt(document.getElementById('subjectsWithGradesCount').textContent);
+
+        if (subjectsWithGrades > 0 && totalSubjects > 0) {
+            document.getElementById('subjectsWithGradesLabel').textContent =
+                `${subjectsWithGrades} of ${totalSubjects} with grades`;
+        }
+    }
+
+    // Initialize on page load
+    window.addEventListener('DOMContentLoaded', function() {
+        calculateGradeTrends();
+    });
+</script>
 </body>
 </html>

@@ -10,12 +10,23 @@
         .navigation { background: white; padding: 15px; border-radius: 5px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .navigation a { display: inline-block; padding: 10px 20px; margin: 5px; background-color: #2196F3; color: white; text-decoration: none; border-radius: 4px; }
         .navigation a:hover { background-color: #1976D2; }
-        .logout { background-color: #f44336 !important; float: right; }
+        .logout-btn { display: inline-block; padding: 10px 20px; margin: 5px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-family: Arial, sans-serif; }
+        .logout-btn:hover { background-color: #d32f2f; }
         .section { background: white; padding: 20px; border-radius: 5px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         h2 { color: #333; margin-bottom: 15px; border-bottom: 2px solid #2196F3; padding-bottom: 10px; }
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
         input, select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        input:focus, select:focus { outline: none; border-color: #4CAF50; }
+
+        /* Form validation styling */
+        input:invalid:not(:placeholder-shown) { border-color: #f44336; }
+        input:valid:not(:placeholder-shown) { border-color: #4CAF50; }
+        select:invalid { border-color: #f44336; }
+        .validation-message { display: none; color: #f44336; font-size: 12px; margin-top: 5px; }
+        input:invalid:not(:placeholder-shown) + .validation-message,
+        select:invalid + .validation-message { display: block; }
+
         button { background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px; }
         button:hover { background-color: #45a049; }
         .message { padding: 12px; border-radius: 4px; margin-bottom: 15px; }
@@ -50,27 +61,29 @@
     <div class="info-box">
         <p><strong>Purpose:</strong> Teachers need to be assigned to subjects before they can enter grades for those subjects.</p>
     </div>
-    <form action="/admin/assignments/teacher-subject" method="post">
+    <form action="/admin/assignments/teacher-subject" method="post" id="teacherSubjectForm">
         <div class="form-group">
             <label>Select Teacher:</label>
-            <select name="teacherId" required>
+            <select name="teacherId" id="teacherId" required>
                 <option value="">-- Choose Teacher --</option>
                 <option th:each="teacher : ${teachers}"
                         th:value="${teacher.user.userId}"
                         th:text="${teacher.user.username} + ' (' + (${teacher.department != null ? teacher.department : 'No Department'}) + ')'">
                 </option>
             </select>
+            <span class="validation-message">Please select a teacher</span>
         </div>
 
         <div class="form-group">
             <label>Select Subject:</label>
-            <select name="subjectId" required>
+            <select name="subjectId" id="subjectId1" required>
                 <option value="">-- Choose Subject --</option>
                 <option th:each="subject : ${subjects}"
                         th:value="${subject.subjectId}"
                         th:text="${subject.code} + ' (' + (${subject.credits != null ? subject.credits + ' credits' : 'N/A'}) + ')'">
                 </option>
             </select>
+            <span class="validation-message">Please select a subject</span>
         </div>
 
         <button type="submit">Assign Teacher to Subject</button>
@@ -82,32 +95,39 @@
     <div class="info-box">
         <p><strong>Purpose:</strong> Groups need to have subjects assigned to them. All students in a group will be enrolled in these subjects.</p>
     </div>
-    <form action="/admin/assignments/group-subject" method="post">
+    <form action="/admin/assignments/group-subject" method="post" id="groupSubjectForm">
         <div class="form-group">
             <label>Select Group:</label>
-            <select name="groupId" required>
+            <select name="groupId" id="groupId1" required>
                 <option value="">-- Choose Group --</option>
                 <option th:each="group : ${groups}"
                         th:value="${group.groupId}"
-                        th:text="${group.courseYear != null ? group.courseYear : 'Group ' + group.groupId}">
+                        th:text="${group.groupCode != null ? group.groupCode : 'Group ' + group.groupId}">
                 </option>
             </select>
+            <span class="validation-message">Please select a group</span>
         </div>
 
         <div class="form-group">
             <label>Select Subject:</label>
-            <select name="subjectId" required>
+            <select name="subjectId" id="subjectId2" required>
                 <option value="">-- Choose Subject --</option>
                 <option th:each="subject : ${subjects}"
                         th:value="${subject.subjectId}"
                         th:text="${subject.code}">
                 </option>
             </select>
+            <span class="validation-message">Please select a subject</span>
         </div>
 
         <div class="form-group">
             <label>Academic Semester (Optional):</label>
-            <input type="text" name="academicSemester" placeholder="e.g., Fall 2024, Spring 2025">
+            <input type="text"
+                   name="academicSemester"
+                   id="academicSemester"
+                   minlength="3"
+                   placeholder="e.g., Fall 2024, Spring 2025">
+            <span class="validation-message">Semester must be at least 3 characters</span>
         </div>
 
         <button type="submit">Assign Subject to Group</button>
@@ -119,27 +139,29 @@
     <div class="info-box">
         <p><strong>Purpose:</strong> Students need to be in a group to access the subjects assigned to that group.</p>
     </div>
-    <form action="/admin/assignments/student-group" method="post">
+    <form action="/admin/assignments/student-group" method="post" id="studentGroupForm">
         <div class="form-group">
             <label>Select Student:</label>
-            <select name="studentId" required>
+            <select name="studentId" id="studentId" required>
                 <option value="">-- Choose Student --</option>
                 <option th:each="student : ${students}"
                         th:value="${student.user.userId}"
-                        th:text="${student.user.username} + (${student.group != null ? ' (Currently in: ' + student.group.courseYear + ')' : ' (No group)'})">
+                        th:text="${student.user.username} + (${student.group != null && student.group.groupCode != null ? ' (Currently in: ' + student.group.groupCode + ')' : ' (No group)'})">
                 </option>
             </select>
+            <span class="validation-message">Please select a student</span>
         </div>
 
         <div class="form-group">
             <label>Select Group:</label>
-            <select name="groupId" required>
+            <select name="groupId" id="groupId2" required>
                 <option value="">-- Choose Group --</option>
                 <option th:each="group : ${groups}"
                         th:value="${group.groupId}"
-                        th:text="${group.courseYear != null ? group.courseYear : 'Group ' + group.groupId}">
+                        th:text="${group.groupCode != null ? group.groupCode : 'Group ' + group.groupId}">
                 </option>
             </select>
+            <span class="validation-message">Please select a group</span>
         </div>
 
         <button type="submit">Assign Student to Group</button>
@@ -159,5 +181,65 @@
         <p style="margin-top: 15px;"><strong>Result:</strong> Students will be able to see their subjects, and teachers will be able to enter grades for their assigned subjects.</p>
     </div>
 </div>
+
+<script>
+    document.getElementById('teacherSubjectForm').addEventListener('submit', function(e) {
+        const teacherId = document.getElementById('teacherId');
+        const subjectId = document.getElementById('subjectId1');
+
+        if (!teacherId.value) {
+            e.preventDefault();
+            teacherId.focus();
+            return false;
+        }
+
+        if (!subjectId.value) {
+            e.preventDefault();
+            subjectId.focus();
+            return false;
+        }
+    });
+
+    document.getElementById('groupSubjectForm').addEventListener('submit', function(e) {
+        const groupId = document.getElementById('groupId1');
+        const subjectId = document.getElementById('subjectId2');
+        const semester = document.getElementById('academicSemester');
+
+        if (!groupId.value) {
+            e.preventDefault();
+            groupId.focus();
+            return false;
+        }
+
+        if (!subjectId.value) {
+            e.preventDefault();
+            subjectId.focus();
+            return false;
+        }
+
+        if (semester.value.trim() && semester.value.length < 3) {
+            e.preventDefault();
+            semester.focus();
+            return false;
+        }
+    });
+
+    document.getElementById('studentGroupForm').addEventListener('submit', function(e) {
+        const studentId = document.getElementById('studentId');
+        const groupId = document.getElementById('groupId2');
+
+        if (!studentId.value) {
+            e.preventDefault();
+            studentId.focus();
+            return false;
+        }
+
+        if (!groupId.value) {
+            e.preventDefault();
+            groupId.focus();
+            return false;
+        }
+    });
+</script>
 </body>
 </html>

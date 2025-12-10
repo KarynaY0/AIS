@@ -2,6 +2,7 @@ package ais.controller;
 
 import ais.entity.*;
 import ais.service.AdminService;
+import ais.service.UpdateEntityService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -9,16 +10,20 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/**
- * Admin Web Controller
- * Handles web pages and form submissions for administrator operations
- */
+
 @Controller
 @RequestMapping("/admin")
 public class AdminWebController {
 
+    private final AdminService adminService;
+    private final UpdateEntityService updateEntityService;
+
     @Autowired
-    private AdminService adminService;
+    public AdminWebController(AdminService adminService,
+                              UpdateEntityService updateEntityService) {
+        this.adminService = adminService;
+        this.updateEntityService = updateEntityService;
+    }
 
     /**
      * Check if user is admin
@@ -74,6 +79,32 @@ public class AdminWebController {
             adminService.createStudent(firstName, lastName, groupId);
             redirectAttributes.addFlashAttribute("successMessage",
                     "Student created successfully! Username: " + firstName + ", Password: " + lastName);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Error: " + e.getMessage());
+        }
+
+        return "redirect:/admin/students";
+    }
+
+    /**
+     * Update student
+     */
+    @PostMapping("/students/update/{userId}")
+    public String updateStudent(@PathVariable Long userId,
+                                @RequestParam(required = false) String username,
+                                @RequestParam(required = false) String password,
+                                @RequestParam(required = false) Long groupId,
+                                HttpSession session,
+                                RedirectAttributes redirectAttributes) {
+        if (!isAdmin(session)) {
+            return "redirect:/login.html";
+        }
+
+        try {
+            updateEntityService.updateStudent(userId, username, password, groupId);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Student updated successfully!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage",
                     "Error: " + e.getMessage());
@@ -144,6 +175,32 @@ public class AdminWebController {
     }
 
     /**
+     * Update teacher
+     */
+    @PostMapping("/teachers/update/{userId}")
+    public String updateTeacher(@PathVariable Long userId,
+                                @RequestParam(required = false) String username,
+                                @RequestParam(required = false) String password,
+                                @RequestParam(required = false) String department,
+                                HttpSession session,
+                                RedirectAttributes redirectAttributes) {
+        if (!isAdmin(session)) {
+            return "redirect:/login.html";
+        }
+
+        try {
+            updateEntityService.updateTeacher(userId, username, password, department);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Teacher updated successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Error: " + e.getMessage());
+        }
+
+        return "redirect:/admin/teachers";
+    }
+
+    /**
      * Delete teacher
      */
     @PostMapping("/teachers/delete/{userId}")
@@ -181,10 +238,14 @@ public class AdminWebController {
     }
 
     /**
-     * Create group
+     * Create group - NEW FORMAT
+     * Expects: programInitials, startYear, languageCode
+     * Validates input and ensures groupCode is properly generated
      */
     @PostMapping("/groups/create")
-    public String createGroup(@RequestParam String courseYear,
+    public String createGroup(@RequestParam String programInitials,
+                              @RequestParam Integer startYear,
+                              @RequestParam(required = false) String languageCode,
                               HttpSession session,
                               RedirectAttributes redirectAttributes) {
         if (!isAdmin(session)) {
@@ -192,10 +253,86 @@ public class AdminWebController {
         }
 
         try {
-            adminService.createGroup(courseYear);
-            redirectAttributes.addFlashAttribute("successMessage", "Group created successfully!");
+            // Validate and normalize input
+            programInitials = programInitials.trim().toUpperCase();
+            if (languageCode != null && !languageCode.isEmpty()) {
+                languageCode = languageCode.trim().toUpperCase();
+            } else {
+                languageCode = null; // Set to null if empty
+            }
+
+            // Validate programInitials (2-3 characters)
+            if (programInitials.length() < 2 || programInitials.length() > 3) {
+                throw new IllegalArgumentException("Program initials must be 2-3 characters");
+            }
+
+            // Validate startYear (0-99)
+            if (startYear < 0 || startYear > 99) {
+                throw new IllegalArgumentException("Start year must be between 0 and 99");
+            }
+
+            // Validate languageCode (single character if provided)
+            if (languageCode != null && languageCode.length() != 1) {
+                throw new IllegalArgumentException("Language code must be a single character");
+            }
+
+            // Create group through service
+            Group group = adminService.createGroup(programInitials, startYear, languageCode);
+
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Group created successfully! Code: " + group.getGroupCode());
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error: " + e.getMessage());
+        }
+
+        return "redirect:/admin/groups";
+    }
+
+    /**
+     * Update group - NEW FORMAT
+     * Validates input and ensures groupCode is regenerated
+     */
+    @PostMapping("/groups/update/{groupId}")
+    public String updateGroup(@PathVariable Long groupId,
+                              @RequestParam String programInitials,
+                              @RequestParam Integer startYear,
+                              @RequestParam(required = false) String languageCode,
+                              HttpSession session,
+                              RedirectAttributes redirectAttributes) {
+        if (!isAdmin(session)) {
+            return "redirect:/login.html";
+        }
+
+        try {
+            // Validate and normalize input
+            programInitials = programInitials.trim().toUpperCase();
+            if (languageCode != null && !languageCode.isEmpty()) {
+                languageCode = languageCode.trim().toUpperCase();
+            } else {
+                languageCode = null; // Set to null if empty
+            }
+
+            // Validate programInitials (2-3 characters)
+            if (programInitials.length() < 2 || programInitials.length() > 3) {
+                throw new IllegalArgumentException("Program initials must be 2-3 characters");
+            }
+
+            // Validate startYear (0-99)
+            if (startYear < 0 || startYear > 99) {
+                throw new IllegalArgumentException("Start year must be between 0 and 99");
+            }
+
+            // Validate languageCode (single character if provided)
+            if (languageCode != null && languageCode.length() != 1) {
+                throw new IllegalArgumentException("Language code must be a single character");
+            }
+
+            updateEntityService.updateGroup(groupId, programInitials, startYear, languageCode);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Group updated successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Error: " + e.getMessage());
         }
 
         return "redirect:/admin/groups";
@@ -255,6 +392,31 @@ public class AdminWebController {
             redirectAttributes.addFlashAttribute("successMessage", "Subject created successfully!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error: " + e.getMessage());
+        }
+
+        return "redirect:/admin/subjects";
+    }
+
+    /**
+     * Update subject
+     */
+    @PostMapping("/subjects/update/{subjectId}")
+    public String updateSubject(@PathVariable Long subjectId,
+                                @RequestParam(required = false) String code,
+                                @RequestParam(required = false) Integer credits,
+                                HttpSession session,
+                                RedirectAttributes redirectAttributes) {
+        if (!isAdmin(session)) {
+            return "redirect:/login.html";
+        }
+
+        try {
+            updateEntityService.updateSubject(subjectId, code, credits);
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Subject updated successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage",
+                    "Error: " + e.getMessage());
         }
 
         return "redirect:/admin/subjects";
