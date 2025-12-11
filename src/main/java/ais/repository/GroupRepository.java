@@ -9,12 +9,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * GroupRepository - Updated for new group format
- *
- * New format: [ProgramInitials][Year][LanguageCode]
- * Example: PI24E, CS23, BA24L
- */
 @Repository
 public interface GroupRepository extends JpaRepository<Group, Long> {
 

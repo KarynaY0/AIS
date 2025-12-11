@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * UpdateEntityService - Handles entity updates with SOLID principles
- * Updated for new Group format
  */
 @Service
 @Transactional

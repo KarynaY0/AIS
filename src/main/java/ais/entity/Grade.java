@@ -90,7 +90,7 @@ public class Grade {
         this.comment = comment;
     }
 
-    // Helper methods to get IDs (useful for some cases)
+    // Helper methods to get IDs
     public Long getUserId() {
         return student != null ? student.getUserId() : null;
     }

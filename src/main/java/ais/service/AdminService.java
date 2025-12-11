@@ -10,17 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-/**
- * Admin Service - Complete Implementation with SOLID Principles
- * Updated for new Group format with comprehensive exception handling
- *
- * SOLID Principles Applied:
- * - Single Responsibility: Each method has one clear purpose
- * - Open/Closed: Extensible through dependency injection, closed for modification
- * - Liskov Substitution: Properly implements service contracts
- * - Interface Segregation: Focused on admin-specific operations only
- * - Dependency Inversion: Depends on repository abstractions (interfaces)
- */
+
 @Service
 @Transactional
 public class AdminService {

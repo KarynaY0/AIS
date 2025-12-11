@@ -15,7 +15,7 @@ public class Admin {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "PK")
-    private Long pk;  // Changed from Integer to Long
+    private Long pk;
 
     @OneToOne
     @JoinColumn(name = "UserID", nullable = false, unique = true)
